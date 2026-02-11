@@ -37,9 +37,9 @@ turbogen_power = 600 # kW
 
 # aerodynamics
 lift_to_drag = 12
-form_drag_coef = 0 # CHANGE
 C_L_to = 10
 C_L_cruise = 0.19
+C_D_0 = 0.03
 
 # weight breakdown
 W_fixed = 1360 * g # N
@@ -107,7 +107,10 @@ def induced_drag_coeff(C_L, AR, e=1):
     return (C_L**2) / (math.pi * AR * e)
 
 def drag_coeff(C_L, AR):
-    return form_drag_coef + induced_drag_coeff(C_L, AR)
+    return C_D_0 + induced_drag_coeff(C_L, AR)
+
+def total_drag_cruise():
+    return drag_coeff * 0.5 * rho_cruise * (v_cruise**2) * S
 
 def x_takeoff(C_L_to, gamma, AR):
     # use all other values to calculate x_to and compare
