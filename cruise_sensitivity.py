@@ -19,7 +19,7 @@ rho_climb = 1.225 # update
 v_cruise = 125
 v_non_cruise = 0 # fix
 v_climb = 0 # fix
-x_to = 45
+x_to = 50
 
 # geometry
 radius_prop = 0.5
@@ -45,9 +45,9 @@ C_L_cruise = 0.19
 W_fixed = 1360 * g # N
 W_airframe = 2176 * g
 W_power = 1904 * g
-mass = 4500
+mass = 4700
 W_total = mass * g
-wing_loading = 140 # kg/m^2
+wing_loading = 135 # kg/m^2
 S = mass / wing_loading
 # print(S)
 AR = (b**2) / S
@@ -412,10 +412,12 @@ def plot_velocity(var_name, min, max, n_points):
 #     "C_L_cruise": (0.1, 0.4),
 # })
 
-plot_velocity("wing_loading", 20, 50, 50)
+plot_velocity("wing_loading", 100, 200, 50)
 
 print("C_L_cruise", get_C_L_cruise())
 print("v_takeoff", takeoff_velocity())
+print("takeoff thrust/weight", thrust_takeoff()/W_total)
 print("takeoff thrust", thrust_takeoff())
 print("Takeoff distance", get_x_takeoff(C_L_to))
 print("V_cruise", get_v_cruise())
+print("takeoff power", (thrust_takeoff()*takeoff_velocity())/0.95)
