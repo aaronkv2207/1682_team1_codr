@@ -19,7 +19,7 @@ rho_climb = 1.225 # update
 v_cruise = 125
 v_non_cruise = 0 # fix
 v_climb = 0 # fix
-x_to = 150
+x_to = 45
 
 # geometry
 radius_prop = 0.5
@@ -37,16 +37,16 @@ turbogen_power = 600 # kW
 
 # aerodynamics
 lift_to_drag = 12
+form_drag_coef = 0 # CHANGE
 C_L_to = 10
 C_L_cruise = 0.19
-C_D_0 = 0.03
 
 # weight breakdown
 W_fixed = 1360 * g # N
 W_airframe = 2176 * g
 W_power = 1904 * g
-W_total = 5440 * g
-mass = 5440
+mass = 4500
+W_total = mass * g
 wing_loading = 140 # kg/m^2
 S = mass / wing_loading
 # print(S)
@@ -96,7 +96,7 @@ def thrust_climb(gamma, acceleration, C_L, AR):
     return term1 + term2 + term3
 
 def thrust_takeoff():
-    takeoff_vel = takeoff_velocity()
+    takeoff_vel = 15
     return 0.5 * mass * (takeoff_vel**2) / x_to
 
 def thrust_cruise(C_L, AR):
@@ -107,104 +107,99 @@ def induced_drag_coeff(C_L, AR, e=1):
     return (C_L**2) / (math.pi * AR * e)
 
 def drag_coeff(C_L, AR):
-    return C_D_0 + induced_drag_coeff(C_L, AR)
-
-def total_drag_cruise():
-    return drag_coeff * 0.5 * rho_cruise * (v_cruise**2) * S
+    return form_drag_coef + induced_drag_coeff(C_L, AR)
 
 def get_x_takeoff(C_L_to):
-    # use all other values to calculate x_to and compare
-    # to "ideal"
-    thrust = thrust_takeoff()
-    return (W_total / S) / (thrust/W_total * rho_ground * g * C_L_to)
-
-print("x_takeoff", get_x_takeoff(C_L_to))
+    thrust = 10000
+    x_takeoff = (W_total / S) / (thrust/W_total) * 1/ (rho_ground * g) * 1/C_L_to
+    return x_takeoff
+    # return (W_total / S) / (thrust/W_total * rho_cruise * g * C_L_to)
 
 
-def plot_velocity(var_name, min, max, n_points):
-    """
-    Sweep a variable (SI units) and plot cruise velocity vs that variable.
+# def plot_velocity(var_name, min, max, n_points):
+#     """
+#     Sweep a variable (SI units) and plot cruise velocity vs that variable.
 
-    Special cases:
-    - If var_name is "mass" (kg) or "wing_loading" (kg/m^2), S is recomputed as:
-          S = mass / wing_loading   [m^2]
-    """
+#     Special cases:
+#     - If var_name is "mass" (kg) or "wing_loading" (kg/m^2), S is recomputed as:
+#           S = mass / wing_loading   [m^2]
+#     """
 
-    # Variables used by get_v_cruise (and their SI units)
-    used_vars_units = {
-        "W_total": "N",
-        "rho_cruise": "kg/m^3",
-        "S": "m^2",
-        "C_L_cruise": "-"
-    }
+#     # Variables used by get_v_cruise (and their SI units)
+#     used_vars_units = {
+#         "W_total": "N",
+#         "rho_cruise": "kg/m^3",
+#         "S": "m^2",
+#         "C_L_cruise": "-"
+#     }
 
-    # Check variable exists (or is special case)
-    if var_name not in globals() and var_name not in ["mass", "wing_loading"]:
-        raise ValueError(f"Variable '{var_name}' not found in globals().")
+#     # Check variable exists (or is special case)
+#     if var_name not in globals() and var_name not in ["mass", "wing_loading"]:
+#         raise ValueError(f"Variable '{var_name}' not found in globals().")
 
-    # Save originals
-    originals = {
-        "S": globals().get("S", None),
-        "mass": globals().get("mass", None),
-        "wing_loading": globals().get("wing_loading", None),
-        var_name: globals().get(var_name, None)
-    }
+#     # Save originals
+#     originals = {
+#         "S": globals().get("S", None),
+#         "mass": globals().get("mass", None),
+#         "wing_loading": globals().get("wing_loading", None),
+#         var_name: globals().get(var_name, None)
+#     }
 
-    sweep_vals = np.linspace(min, max, n_points)
-    velocities = []
+#     sweep_vals = np.linspace(min, max, n_points)
+#     velocities = []
 
-    for val in sweep_vals:
-        if var_name == "mass":  # kg
-            globals()["mass"] = val
-            globals()["S"] = globals()["mass"] / globals()["wing_loading"]  # m^2
-        elif var_name == "wing_loading":  # kg/m^2
-            globals()["wing_loading"] = val
-            globals()["S"] = globals()["mass"] / globals()["wing_loading"]  # m^2
-        else:
-            globals()[var_name] = val
+#     for val in sweep_vals:
+#         if var_name == "mass":  # kg
+#             globals()["mass"] = val
+#             globals()["S"] = globals()["mass"] / globals()["wing_loading"]  # m^2
+#         elif var_name == "wing_loading":  # kg/m^2
+#             globals()["wing_loading"] = val
+#             globals()["S"] = globals()["mass"] / globals()["wing_loading"]  # m^2
+#         else:
+#             globals()[var_name] = val
 
-        velocities.append(get_v_cruise())  # m/s
+#         velocities.append(get_v_cruise())  # m/s
 
-    # Restore originals
-    for k, v in originals.items():
-        if k in globals() and v is not None:
-            globals()[k] = v
+#     # Restore originals
+#     for k, v in originals.items():
+#         if k in globals() and v is not None:
+#             globals()[k] = v
 
-    # Build info text (baseline reference)
-    info_lines = []
-    for v, unit in used_vars_units.items():
-        info_lines.append(f"{v} = {globals()[v]:.5g} [{unit}]")
-    info_text = "\n".join(info_lines)
+#     # Build info text (baseline reference)
+#     info_lines = []
+#     for v, unit in used_vars_units.items():
+#         info_lines.append(f"{v} = {globals()[v]:.5g} [{unit}]")
+#     info_text = "\n".join(info_lines)
 
-    # Axis labels with units
-    x_unit_map = {
-        "mass": "kg",
-        "wing_loading": "kg/m^2",
-        "S": "m^2",
-        "W_total": "N",
-        "rho_cruise": "kg/m^3",
-        "C_L_cruise": "-"
-    }
-    x_unit = x_unit_map.get(var_name, "")
+#     # Axis labels with units
+#     x_unit_map = {
+#         "mass": "kg",
+#         "wing_loading": "kg/m^2",
+#         "S": "m^2",
+#         "W_total": "N",
+#         "rho_cruise": "kg/m^3",
+#         "C_L_cruise": "-"
+#     }
+#     x_unit = x_unit_map.get(var_name, "")
 
-    plt.figure()
-    plt.plot(sweep_vals, velocities)
-    plt.xlabel(f"{var_name} [{x_unit}]")
-    plt.ylabel("Cruise velocity [m/s]")
-    plt.title(f"Cruise velocity vs {var_name}")
-    plt.grid(True)
+#     plt.figure()
+#     plt.plot(sweep_vals, velocities)
+#     plt.xlabel(f"{var_name} [{x_unit}]")
+#     plt.ylabel("Cruise velocity [m/s]")
+#     plt.title(f"Cruise velocity vs {var_name}")
+#     plt.grid(True)
 
-    # Always add the baseline reference text box
-    plt.gca().text(
-        0.02, 0.98, info_text,
-        transform=plt.gca().transAxes,
-        fontsize=10,
-        verticalalignment="top",
-        horizontalalignment="left",
-        bbox=dict(boxstyle="round", facecolor="white", alpha=0.85)
-    )
+#     # Always add the baseline reference text box
+#     plt.gca().text(
+#         0.02, 0.98, info_text,
+#         transform=plt.gca().transAxes,
+#         fontsize=10,
+#         verticalalignment="top",
+#         horizontalalignment="left",
+#         bbox=dict(boxstyle="round", facecolor="white", alpha=0.85)
+#     )
 
-    plt.show()
+#     plt.show()
 
 
 def compare_sweeps(ranges, n_points=50):
@@ -307,6 +302,105 @@ def compare_sweeps(ranges, n_points=50):
 
     plt.show()
 
+def plot_velocity(var_name, min, max, n_points):
+    """
+    Sweep a variable (SI units) and plot cruise velocity and takeoff distance vs that variable.
+
+    Special cases:
+    - If var_name is "mass" (kg) or "wing_loading" (kg/m^2), S is recomputed as:
+          S = mass / wing_loading   [m^2]
+    """
+
+    # Variables used by get_v_cruise (and their SI units)
+    used_vars_units = {
+        "W_total": "N",
+        "rho_cruise": "kg/m^3",
+        "S": "m^2",
+        "C_L_cruise": "-"
+    }
+
+    # Check variable exists (or is special case)
+    if var_name not in globals() and var_name not in ["mass", "wing_loading"]:
+        raise ValueError(f"Variable '{var_name}' not found in globals().")
+
+    # Save originals
+    originals = {
+        "S": globals().get("S", None),
+        "mass": globals().get("mass", None),
+        "wing_loading": globals().get("wing_loading", None),
+        var_name: globals().get(var_name, None)
+    }
+
+    sweep_vals = np.linspace(min, max, n_points)
+    velocities = []
+    takeoff_distances = []
+
+    for val in sweep_vals:
+        # Update the variable and derived S if needed
+        if var_name == "mass":
+            globals()["mass"] = val
+            globals()["S"] = globals()["mass"] / globals()["wing_loading"]
+            globals()["W_total"] = globals()["mass"] * g  # weight updates with mass
+        elif var_name == "wing_loading":
+            globals()["wing_loading"] = val
+            globals()["S"] = globals()["mass"] / globals()["wing_loading"]
+        else:
+            globals()[var_name] = val
+
+        velocities.append(get_v_cruise())
+
+        # Calculate takeoff distance using your actual function
+        takeoff_distances.append(get_x_takeoff(C_L_to))
+
+
+    # Restore originals
+    for k, v in originals.items():
+        if k in globals() and v is not None:
+            globals()[k] = v
+
+    # Build info text
+    info_lines = [f"Target cruise velocity = 125 m/s",
+                  f"Target takeoff distance = 45 m"]
+    for v, unit in used_vars_units.items():
+        if v == var_name or (var_name in ["mass", "wing_loading"] and v == "S"):
+            info_lines.append(f"{v} = (swept/derived) [{unit}]")
+        else:
+            info_lines.append(f"{v} = {globals()[v]:.5g} [{unit}]")
+    info_text = "\n".join(info_lines)
+
+    # -------------------- Plotting --------------------
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+
+    # Cruise velocity plot
+    ax1.plot(sweep_vals, velocities, color="blue")
+    ax1.axhline(125, color="red", linestyle="--", label="Target 125 m/s")
+    ax1.set_xlabel(f"{var_name}")
+    ax1.set_ylabel("Cruise velocity [m/s]")
+    ax1.set_title(f"Cruise velocity vs {var_name}")
+    ax1.grid(True)
+    ax1.legend(loc="upper left")
+
+    # Takeoff distance plot
+    ax2.plot(sweep_vals, takeoff_distances, color="green")
+    ax2.axhline(45, color="red", linestyle="--", label="Target 45 m")
+    ax2.set_xlabel(f"{var_name}")
+    ax2.set_ylabel("Takeoff distance [m]")
+    ax2.set_title(f"Takeoff distance vs {var_name}")
+    ax2.grid(True)
+    ax2.legend(loc="upper left")
+
+    # Add info text box on the first plot
+    ax1.text(
+        0.02, 0.98, info_text,
+        transform=ax1.transAxes,
+        fontsize=10,
+        verticalalignment="top",
+        horizontalalignment="left",
+        bbox=dict(boxstyle="round", facecolor="white", alpha=0.85)
+    )
+
+    plt.tight_layout()
+    plt.show()
 
 
 
@@ -318,12 +412,10 @@ def compare_sweeps(ranges, n_points=50):
 #     "C_L_cruise": (0.1, 0.4),
 # })
 
-# plot_velocity("wing_loading", 80, 200, 50)
+plot_velocity("wing_loading", 20, 50, 50)
 
-# print("C_L_cruise", get_C_L_cruise())
-# print("v_takeoff", takeoff_velocity())
-# print("takeoff thrust", thrust_takeoff())
-# takeoff_thrust = thrust_takeoff()
-# print(power(cruise=True))
-# print(power(takeoff_thrust, False))
-# print(get_v_cruise())
+print("C_L_cruise", get_C_L_cruise())
+print("v_takeoff", takeoff_velocity())
+print("takeoff thrust", thrust_takeoff())
+print("Takeoff distance", get_x_takeoff(C_L_to))
+print("V_cruise", get_v_cruise())
