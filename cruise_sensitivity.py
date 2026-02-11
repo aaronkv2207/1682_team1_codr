@@ -112,11 +112,13 @@ def drag_coeff(C_L, AR):
 def total_drag_cruise():
     return drag_coeff * 0.5 * rho_cruise * (v_cruise**2) * S
 
-def x_takeoff(C_L_to, gamma, AR):
+def get_x_takeoff(C_L_to):
     # use all other values to calculate x_to and compare
     # to "ideal"
-    thrust = thrust(gamma, C_L_to, AR)
-    return (W_total / S) / (thrust * rho_cruise * g * C_L_to)
+    thrust = thrust_takeoff()
+    return (W_total / S) / (thrust/W_total * rho_ground * g * C_L_to)
+
+print("x_takeoff", get_x_takeoff(C_L_to))
 
 
 def plot_velocity(var_name, min, max, n_points):
@@ -308,15 +310,15 @@ def compare_sweeps(ranges, n_points=50):
 
 
 
-compare_sweeps({
-    "mass": (4000, 7000),
-    "wing_loading": (80, 200),
-    "S": (20, 60),
-    "rho_cruise": (0.909, 1.225),
-    "C_L_cruise": (0.1, 0.4),
-})
+# compare_sweeps({
+#     "mass": (4000, 7000),
+#     "wing_loading": (80, 200),
+#     "S": (20, 60),
+#     "rho_cruise": (0.909, 1.225),
+#     "C_L_cruise": (0.1, 0.4),
+# })
 
-plot_velocity("wing_loading", 80, 200, 50)
+# plot_velocity("wing_loading", 80, 200, 50)
 
 # print("C_L_cruise", get_C_L_cruise())
 # print("v_takeoff", takeoff_velocity())
@@ -324,4 +326,4 @@ plot_velocity("wing_loading", 80, 200, 50)
 # takeoff_thrust = thrust_takeoff()
 # print(power(cruise=True))
 # print(power(takeoff_thrust, False))
-print(get_v_cruise())
+# print(get_v_cruise())
