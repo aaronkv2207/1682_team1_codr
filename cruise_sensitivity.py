@@ -19,7 +19,7 @@ rho_climb = 1.225 # update
 v_cruise = 125
 v_non_cruise = 0 # fix
 v_climb = 0 # fix
-x_to = 50
+x_to = 45
 
 # geometry
 radius_prop = 0.5
@@ -38,14 +38,14 @@ turbogen_power = 600 # kW
 # aerodynamics
 lift_to_drag = 12
 form_drag_coef = 0 # CHANGE
-C_L_to = 10
+C_L_to = 8
 C_L_cruise = 0.19
 
 # weight breakdown
 W_fixed = 1360 * g # N
 W_airframe = 2176 * g
 W_power = 1904 * g
-mass = 4700
+mass = 5440
 W_total = mass * g
 wing_loading = 135 # kg/m^2
 S = mass / wing_loading
@@ -96,7 +96,7 @@ def thrust_climb(gamma, acceleration, C_L, AR):
     return term1 + term2 + term3
 
 def thrust_takeoff():
-    takeoff_vel = 15
+    takeoff_vel = takeoff_velocity()
     return 0.5 * mass * (takeoff_vel**2) / x_to
 
 def thrust_cruise(C_L, AR):
@@ -110,7 +110,7 @@ def drag_coeff(C_L, AR):
     return form_drag_coef + induced_drag_coeff(C_L, AR)
 
 def get_x_takeoff(C_L_to):
-    thrust = 10000
+    thrust = 16500
     x_takeoff = (W_total / S) / (thrust/W_total) * 1/ (rho_ground * g) * 1/C_L_to
     return x_takeoff
     # return (W_total / S) / (thrust/W_total * rho_cruise * g * C_L_to)
@@ -404,13 +404,13 @@ def plot_velocity(var_name, min, max, n_points):
 
 
 
-# compare_sweeps({
-#     "mass": (4000, 7000),
-#     "wing_loading": (80, 200),
-#     "S": (20, 60),
-#     "rho_cruise": (0.909, 1.225),
-#     "C_L_cruise": (0.1, 0.4),
-# })
+compare_sweeps({
+    "mass": (4000, 7000),
+    "wing_loading": (80, 200),
+    "S": (20, 60),
+    "rho_cruise": (0.909, 1.225),
+    "C_L_cruise": (0.1, 0.4),
+})
 
 plot_velocity("wing_loading", 100, 200, 50)
 
@@ -420,4 +420,4 @@ print("takeoff thrust/weight", thrust_takeoff()/W_total)
 print("takeoff thrust", thrust_takeoff())
 print("Takeoff distance", get_x_takeoff(C_L_to))
 print("V_cruise", get_v_cruise())
-print("takeoff power", (thrust_takeoff()*takeoff_velocity())/0.95)
+print("takeoff power", (thrust_takeoff()*takeoff_velocity())/0.50)
