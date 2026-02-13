@@ -11,8 +11,8 @@ W_final = 4440 * g
 x_to = 45 # m
 
 rho_cruise = 0.909
-C_L_cruise = 0.25
-n_p = 0.6
+C_L_cruise = 0.35
+n_p = 0.8
 c_p = 1*10**(-7)
 c_d = 0.035
 
@@ -27,14 +27,12 @@ V_cruise = np.sqrt((2 * weight) / (rho_cruise * S * C_L_cruise))
 print("V_cruise:", V_cruise)
 
 # Range equation
-range = (n_p/c_p)*(C_L_cruise/c_d)*np.log(weight/W_final)
+range = (1/g)*(n_p/c_p)*(C_L_cruise/c_d)*np.log(weight/W_final)
 print("c_l/c_d:", C_L_cruise/c_d)
 print("Range:", range/10**3)
 
 # Things to do
 # Drag: induced drag + Cd_0
-# Range
-    # Consider efficiency (lower than normal plane!)
 # Thrust for climb to make sure it's reasonable
 # Static margin
 # Maybe improve takeoff model to account for acceleration
